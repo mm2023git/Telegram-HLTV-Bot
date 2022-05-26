@@ -3,6 +3,8 @@ import telebot
 import main as hltv
 import datetime
 import config
+from pymongo import MongoClient
+from bson.objectid import ObjectId
 
 bot = telebot.TeleBot(config.get_api())
 #Project Created by Michael May
@@ -43,6 +45,14 @@ def todaysresults(message):
     results_string = results_string.replace("'", '')
     #Removes unnecessary characters from string
     bot.reply_to(message, results_string)
+@bot.message_handler(commands=['getteams'])
+def getteams(message):
+    teams_list = hltv.top30teams()
+    teams_string = ""
+    for team in teams_list:
+        teams_string += "ID: (" + str(team['team-id']) + ")  | " + team['name'] + "  |  Rank #" + str(team['rank']) + "\n"
+
+    bot.reply_to(message, teams_string)
 
 @bot.message_handler(commands=['helpcsgo'])
 def help(message):
