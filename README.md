@@ -3,16 +3,20 @@ Ver 0.2 Hltv Bot for Telegram
 
 
 Hello Welcome to the CS:GO HLTV Bot for Telegram this app
-is powered by the pyTelegramBot API and HLTV-API found here
+is powered by the pyTelegramBot API and HLTV-API found here:
+
 https://github.com/SocksPls/hltv-api
+
 https://github.com/eternnoir/pyTelegramBotAPI
                              
 Currently functioning commands are
+
 /upcomingmatches(Displays matches upcoming today and tomorrow)
+
 /getresults(Displays last 10 match results)
 /getteams(Displays a list of the top 30 teams and their rankings)
 /getteaminfo TeamID/TeamName  (Insert name or ID following command and get the roster of the team you searched)
-/csgohelp(Displays this message) 
+/helpcsgo(Displays this message) 
                            
 Ver .2 
 -Added getteams
