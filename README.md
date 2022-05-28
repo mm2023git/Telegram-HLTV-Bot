@@ -1,5 +1,5 @@
 # Telegram-HLTV-Bot
-Ver 0.2 Hltv Bot for Telegram
+Ver 0.3 Hltv Bot for Telegram
 
 
 Hello Welcome to the CS:GO HLTV Bot for Telegram this app
@@ -16,7 +16,11 @@ Currently functioning commands are
 /getresults(Displays last 10 match results)
 /getteams(Displays a list of the top 30 teams and their rankings)
 /getteaminfo TeamID/TeamName  (Insert name or ID following command and get the roster of the team you searched)
-/helpcsgo(Displays this message) 
+/helpcsgo(Displays this message)
+/followteam
+
+Ver .3
+-Added followteam 
                            
 Ver .2 
 -Added getteams
