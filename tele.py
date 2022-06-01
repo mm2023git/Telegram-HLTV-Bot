@@ -205,5 +205,5 @@ follow_thread = threading.Thread(target=check_followers)
 
 follow_thread.start()
 
-bot.polling()
+bot.infinity_polling()
 
