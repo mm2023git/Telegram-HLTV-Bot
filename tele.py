@@ -24,6 +24,10 @@ def string_format(income_str):
     income_str = income_str.replace("'", '')
     return income_str
 
+def parse_format(income_str):
+    income_str = income_str.replace("-", " ")
+    income_str = income_str.replace(".", " ")
+    return income_str
 
 def check_followers():
     mydb = cluster.telebot_db
@@ -31,6 +35,7 @@ def check_followers():
     while True:
         # sleep until 8AM
         t = datetime.datetime.today()
+        y = datetime.date.today() - datetime.timedelta(days=1)
         future = datetime.datetime(t.year,t.month,t.day,4, 0)
         if t.timestamp() >= future.timestamp():
             future += datetime.timedelta(days=1)
@@ -46,8 +51,31 @@ def check_followers():
                             message_string += team_name + " plays against " + string_format(str(i['team2'])) + " on " + string_format(str(i['date'])) + " at " + string_format(str(i['time'])) + " CET\n"
                         elif team_name == string_format(str(i['team2'])):
                             message_string += team_name + " plays against " + string_format(str(i['team1'])) + " on " + string_format(str(i['date'])) + " at " + string_format(str(i['time'])) + " CET\n"
+
+            for team in document["team_id"]:
+                
+                day = str(y.day)
+                month = str(y.month)
+
+                single_check = "(?<!\S)\d(?!\S)"
+                if re.search(single_check, month):
+                    month = "0" + month
+                if re.search(single_check, day):
+                    day = "0" + day
+                match_list = hltv.get_results_by_date(str(y.year) + "-" + str(month) + "-" + str(day), str(y.year) + "-" + str(month) + "-" + str(month))
+
+                team_name = get_team_name(team)
+                for i in match_list:
+                    if team_name == string_format(str(i['team1'])):
+                        message_string += team_name + " played against " + string_format(str(i['team2'])) + " the result was ||" + string_format(str(i['team1score'])) + " to " + string_format(str(i['team2score'])) + "|| \n"
+                    elif team_name == string_format(str(i['team2'])):
+                        message_string += team_name + " played against " + string_format(str(i['team1'])) + " the result was ||" + string_format(str(i['team2score'])) + " to " + string_format(str(i['team1score'])) + "|| \n"
+
+                message_string = parse_format(message_string)
+                
             if message_string != "":
-                bot.send_message(int(document["group_id"]), "@" + str(document["user_at"]) + "\n " + message_string)
+                bot.send_message(int(document["group_id"]), "@" + str(document["user_at"]) + "\n " + message_string, parse_mode='MarkdownV2')
+
 
 @bot.message_handler(commands=['upcomingmatches'])
 def upcomingmatches(message):
@@ -185,6 +213,75 @@ def followteam(message):
             else:
                 bot.reply_to(message, "You are already following this team.")
 
+@bot.message_handler(commands=['unfollowteam'])
+def unfollowteam(message):
+    user_at = message.from_user.username
+    chat_id = message.chat.id
+    user_id = message.from_user.id
+    follow_col = cluster.telebot_db.follow_data
+    team_data = cluster.telebot_db.team_list
+    team_id = -1
+    team_name = ""
+    #collect user data from message
+
+    #team data and check if team entered is valid
+    team_selected = message.text.replace("/unfollowteam ", '')
+    check_id = "[0-9]{3,}[0-9]"
+
+    if team_selected == '':
+        bot.reply_to(message, "Invalid Input: Please input an ID or team name following the command.")
+        #Checks if user added a message alongside the command
+    elif re.search(check_id, team_selected):
+        #Using regex to check if input is an id or team name
+        team_id = team_selected
+    else:
+        team_selected = team_selected.replace(" ", "")
+        team_name = team_selected
+        team_selected = team_selected.lower()
+        #make sure message is formatted correctly
+        team_collection = cluster.telebot_db.team_list
+        team_collection = team_collection.find_one({"name": team_selected})
+        #query the name
+        if team_collection == None:
+            bot.reply_to(message, "Team not found. Make sure name was entered correctly if it was the team might not yet be added to the database.")
+        else:
+            team_id = team_collection['_id']
+            #assign id to team id
+
+    if team_id != -1:
+        if (follow_col.find_one({"user_id": int(user_id)}) == None) or (follow_col.find_one({"group_id": int(chat_id)}) == None):
+            bot.reply_to(message, "You are not currently following any teams input invalid.")
+        else:
+            if follow_col.find_one({"user_id": int(user_id), "group_id": int(chat_id), "team_id": int(team_id)}) == None:
+                bot.reply_to(message, "You are not currently following " + team_name)
+            else:
+                follow_col.update_one({"user_id": int(user_id), "group_id": int(chat_id)}, {"$pull": {"team_id": int(team_id)}})
+                bot.reply_to(message, "You are no longer following " + team_name)
+
+
+@bot.message_handler(commands=['followlist'])
+def followlist(message):
+    chat_id = message.chat.id
+    user_id = message.from_user.id
+    follow_col = cluster.telebot_db.follow_data
+    list_col = follow_col.find_one({"user_id": int(user_id), "group_id": int(chat_id)})
+    #Gather user data and pull query of user data
+    follow_str = "Teams you follow:\n"
+
+
+    for teams in list_col['team_id']:
+        follow_str += string_format(str(hltv.get_team_info(teams)['team-name'])) + " \n"
+
+    bot.reply_to(message, follow_str)
+
+
+
+
+
+@bot.message_handler(commands=['ty'])
+def thankyouagent(message):
+    bot.reply_to(message, "||Thank you agent||", parse_mode='MarkdownV2')
+
 @bot.message_handler(commands=['helpcsgo'])
 def help(message):
     bot.reply_to(message, ("Hello Welcome to the CS:GO HLTV Bot for Telegram this app\n" 
@@ -202,6 +299,7 @@ def help(message):
                            ))
 
 follow_thread = threading.Thread(target=check_followers)
+result_thread = threading.Thread
 
 follow_thread.start()
 

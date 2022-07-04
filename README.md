@@ -17,7 +17,14 @@ Currently functioning commands are
 /getteams(Displays a list of the top 30 teams and their rankings)
 /getteaminfo TeamID/TeamName  (Insert name or ID following command and get the roster of the team you searched)
 /helpcsgo(Displays this message)
-/followteam folllowed by team name
+/followteam followed by team name
+/unfollowteam followed by team name or team ID
+/followlist (displays list of teams you follow)
+
+
+Ver .5
+-Added unfollowteam
+-Added followlist
 
 Ver .3
 -Added followteam 
