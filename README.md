@@ -1,5 +1,5 @@
 # Telegram-HLTV-Bot
-Ver 0.3 Hltv Bot for Telegram
+Ver 0.5 Hltv Bot for Telegram
 
 
 Hello Welcome to the CS:GO HLTV Bot for Telegram this app
